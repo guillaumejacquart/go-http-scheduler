@@ -1,0 +1,9 @@
+/vendor/*/*
+
+Dockerfile
+.dockerignore
+.travis-ci.yml
+
+.vscode
+/debug
+.git

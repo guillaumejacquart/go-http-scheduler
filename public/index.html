@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>go-http-scheduler</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="open-iconic/font/css/open-iconic-bootstrap.css"
+    />
+    <link rel="stylesheet" href="css/apps.css" />
+  </head>
+
+  <body>
+    <div id="app" v-cloak>
+      <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
+        <a class="navbar-brand" href="/app/">go-http-scheduler</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarsExampleDefault"
+          aria-controls="navbarsExampleDefault"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="/app/"
+                >Apps
+                <span class="sr-only">(current)</span>
+              </a>
+            </li>
+          </ul>
+          <form class="form-inline my-2 my-lg-0">
+            <button
+              class="btn btn-success my-2 my-sm-0"
+              type="button"
+              v-on:click="resetForm()"
+            >
+              Add app
+            </button>
+            <button
+              class="btn btn-dark m-2 my-sm-0"
+              type="button"
+              v-on:click="logout()"
+            >
+              Logout
+            </button>
+          </form>
+        </div>
+      </nav>
+      <div class="container">
+        <div id="app-content" v-if="!loading">
+          <div id="no-app" v-if="!apps.length" class="justify-content-center">
+            <div>Looks like you haven't defined any app yet !</div>
+            <button
+              class="btn btn-success"
+              type="button"
+              v-on:click="resetForm()"
+            >
+              Add app
+            </button>
+          </div>
+          <div
+            id="app-filter"
+            v-if="apps.length"
+            class="row justify-content-center"
+          >
+            <div class="col-sm-4">
+              <input
+                type="text"
+                class="form-control"
+                v-model="search"
+                placeholder="Search app"
+              />
+            </div>
+          </div>
+          <div class="row justify-content-center" id="app-list">
+            <div v-for="app in filteredApps" class="col-sm-3">
+              <div class="app">
+                <div class="app-header">
+                  <div class="app-name">{{app.name}}</div>
+                  <div class="app-url">
+                    <a target="_blank" v-bind:href="app.url">{{app.url}}</a>
+                  </div>
+                </div>
+                <div class="app-status" v-bind:class="app.status">
+                  <span
+                    class="app-status-icon oi"
+                    v-bind:class="getIcon(app)"
+                    title="icon name"
+                    aria-hidden="true"
+                  ></span>
+                  <div class="app-status-text">
+                    Application is {{app.status}}
+                  </div>
+                  <span
+                    class="app-status-history oi oi-clock"
+                    v-on:click="getHistory(app)"
+                  ></span>
+                </div>
+                <div class="app-history" v-show="history.app_id == app.ID">
+                  <ul>
+                    <li v-for="h in history.items">
+                      {{h.date}} - {{h.status}}
+                    </li>
+                  </ul>
+                </div>
+                <div class="app-lastup">
+                  Last up : {{formatUpdate(app.lastUpDate)}}
+                </div>
+                <div class="app-buttons btn-group btn-group-sm">
+                  <button
+                    v-if="app.checkStatus === 'start'"
+                    type="button"
+                    class="btn btn-danger"
+                    v-on:click="changeStatus('stop', app)"
+                  >
+                    Stop
+                  </button>
+                  <button
+                    v-else
+                    type="button"
+                    class="btn btn-success"
+                    v-on:click="changeStatus('start', app)"
+                  >
+                    Start
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    v-on:click="updateForm(app)"
+                  >
+                    Update
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-danger"
+                    v-on:click="deleteApp(app)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="app-loading" v-if="loading">Loading ...</div>
+
+        <!-- Modal -->
+        <div
+          class="modal fade"
+          id="add-app"
+          tabindex="-1"
+          role="dialog"
+          aria-labelledby="Add app"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog modal-lg" role="document">
+            <form id="add-app-form" v-on:submit.prevent="saveApp()">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">
+                    {{!newApp.isUpdate ? 'New app' : 'Edit ' + newApp.name}}
+                  </h5>
+                  <button
+                    type="button"
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="form-group row">
+                    <label for="inputAppName" class="col-sm-5 col-form-label"
+                      >App name</label
+                    >
+                    <div class="col-sm-7">
+                      <input
+                        v-bind:disabled="newApp.isUpdate"
+                        v-model="newApp.name"
+                        type="text"
+                        class="form-control"
+                        id="inputAppName"
+                        placeholder="name"
+                      />
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="inputAppUrl" class="col-sm-5 col-form-label"
+                      >App URL</label
+                    >
+                    <div class="col-sm-7">
+                      <input
+                        v-model="newApp.url"
+                        type="text"
+                        class="form-control"
+                        id="inputAppUrl"
+                        placeholder="url"
+                      />
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="inputAppMethod" class="col-sm-5 col-form-label"
+                      >Method</label
+                    >
+                    <div class="col-sm-7">
+                      <select
+                        v-model="newApp.method"
+                        class="form-control"
+                        id="inputAppMethod"
+                      >
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PATCH">PATCH</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div
+                    class="form-group row"
+                    v-if="newApp.method && !['GET', 'DELETE'].includes(newApp.method)"
+                  >
+                    <label for="inputAppBody" class="col-sm-5 col-form-label"
+                      >Body</label
+                    >
+                    <div class="col-sm-7">
+                      <textarea
+                        v-model="newApp.body"
+                        class="form-control"
+                        id="inputAppBody"
+                        placeholder="{}"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="inputAppCron" class="col-sm-5 col-form-label"
+                      >Cron expression</label
+                    >
+                    <div class="col-sm-7">
+                      <input
+                        v-model="newApp.cronExpression"
+                        type="text"
+                        class="form-control"
+                        id="inputAppCron"
+                        placeholder="* * * * *"
+                      />
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label class="col-sm-5 col-form-label"
+                      >Custom headers</label
+                    >
+                    <div class="col-sm-7">
+                      <div
+                        v-for="(h, index) in newApp.headers"
+                        class="row app-header-row"
+                      >
+                        <div class="col-sm-5">
+                          <input
+                            v-model="h.name"
+                            type="text"
+                            class="form-control form-control-sm"
+                            placeholder="name"
+                          />
+                        </div>
+                        <div class="col-sm-5">
+                          <input
+                            v-model="h.value"
+                            type="text"
+                            class="form-control form-control-sm"
+                            placeholder="value"
+                          />
+                        </div>
+                        <div class="col-sm-2">
+                          <div class="d-flex flex-row-reverse">
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-danger"
+                              v-on:click="newApp.headers.splice(index, 1)"
+                            >
+                              Del
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="d-flex flex-row-reverse">
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-success"
+                          v-on:click="newApp.headers.push({})"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    Save changes
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="login"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="Add app"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <form id="add-app-form" v-on:submit.prevent="login()">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginModalLabel">Login</h5>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group row">
+                <label for="inputUsername" class="col-sm-5 col-form-label"
+                  >Username</label
+                >
+                <div class="col-sm-7">
+                  <input
+                    v-model="username"
+                    type="text"
+                    class="form-control"
+                    id="inputUsername"
+                    placeholder="Username"
+                  />
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="inputPassword" class="col-sm-5 col-form-label"
+                  >Password</label
+                >
+                <div class="col-sm-7">
+                  <input
+                    v-model="password"
+                    type="text"
+                    class="form-control"
+                    id="inputPassword"
+                    placeholder="Password"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                Close
+              </button>
+              <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="js/jquery-3.2.1.slim.min.js"></script>
+    <script src="js/popper.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue.resource.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/apps.js"></script>
+    <script src="js/login.js"></script>
+  </body>
+</html>

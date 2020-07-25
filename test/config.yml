@@ -1,0 +1,7 @@
+history:
+  enabled: true
+db:
+  type: sqlite3
+  path: data.db
+authentication:
+  enabled: false

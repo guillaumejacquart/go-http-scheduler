@@ -1,0 +1,7 @@
+/vendor/*/
+data.db
+
+/.vscode
+/debug
+
+go-http-scheduler*
