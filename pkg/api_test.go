@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/guillaumejacquart/go-http-scheduler/pkg/domain"
 	"github.com/magiconair/properties/assert"
-	"github.com/spf13/viper"
 )
 
 func getRouter() *gin.Engine {
@@ -199,20 +198,4 @@ func TestApiDeleteApp(t *testing.T) {
 	if err == nil {
 		t.Error("App deletion failed")
 	}
-}
-
-func TestApiAuthorization(t *testing.T) {
-	viper.Set("authentication.enabled", true)
-	viper.Set("authentication.username", "admin")
-	viper.Set("authentication.password", "admin")
-	router := getRouter()
-
-	w := httptest.NewRecorder()
-
-	req, _ := http.NewRequest("GET", "/api/apps", nil)
-	router.ServeHTTP(w, req)
-
-	assert.Equal(t, w.Code, http.StatusUnauthorized)
-
-	viper.Set("authentication.enabled", false)
 }

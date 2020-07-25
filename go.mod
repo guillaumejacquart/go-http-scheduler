@@ -10,5 +10,6 @@ require (
 	github.com/magiconair/properties v1.8.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.7.0
+	github.com/stretchr/testify v1.4.0
 	gopkg.in/dgrijalva/jwt-go.v3 v3.2.0 // indirect
 )

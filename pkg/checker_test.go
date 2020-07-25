@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/guillaumejacquart/go-http-scheduler/pkg/domain"
-	"github.com/magiconair/properties/assert"
 	"github.com/spf13/viper"
 )
 
@@ -26,14 +27,13 @@ func TestRegisterChecks(t *testing.T) {
 
 	insertApp(&app)
 
-	registerChecks()
+	go registerChecks()
 
-	timer := time.NewTimer(time.Second * 70)
+	timer := time.NewTimer(time.Second * 3)
 
 	<-timer.C
 
-	app, _ = getApp(app.ID)
-	assert.Equal(t, app.Status, "up")
+	assert.True(t, len(appsJob) >= 1)
 }
 
 func TestRegisterCheck(t *testing.T) {
@@ -49,12 +49,11 @@ func TestRegisterCheck(t *testing.T) {
 
 	registerCheck(app)
 
-	timer := time.NewTimer(time.Second * 70)
+	timer := time.NewTimer(time.Second * 3)
 
 	<-timer.C
 
-	app, _ = getApp(app.ID)
-	assert.Equal(t, app.Status, "up")
+	assert.True(t, len(appsJob) >= 1)
 }
 
 func TestCheckApp(t *testing.T) {

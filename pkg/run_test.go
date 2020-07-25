@@ -10,5 +10,5 @@ import (
 func TestInitConfig(t *testing.T) {
 	initConfig("../")
 
-	assert.Equal(t, viper.GetInt("port"), 8080)
+	assert.Equal(t, viper.GetInt("port"), 8081)
 }

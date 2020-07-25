@@ -5,3 +5,5 @@ data.db
 /debug
 
 go-http-scheduler*
+cover.out
+pkg/test.db

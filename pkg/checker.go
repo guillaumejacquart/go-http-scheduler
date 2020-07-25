@@ -34,9 +34,7 @@ func registerChecks() {
 }
 
 func registerCheck(a domain.App) {
-	log.Println(a.ID)
 	jobID, exists := appsJob[a.ID]
-	log.Printf("Exist %v", exists)
 	if exists {
 		log.Println("Job for app already exists, cleaning it")
 		c.Remove(jobID)
