@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine
+FROM golang:1.13-alpine
 
 RUN apk update && apk upgrade && \
     apk add --no-cache --update bash git gcc g++ && \
@@ -7,7 +7,7 @@ RUN apk update && apk upgrade && \
 WORKDIR /go/src/github.com/guillaumejacquart/go-http-scheduler
 COPY . .
 
-RUN govendor sync && govendor install +local && GOOS=linux go build -o app .
+RUN GOOS=linux go build -o app .
 
 FROM alpine:latest  
 RUN apk --no-cache add ca-certificates
