@@ -23,6 +23,7 @@ func TestRegisterChecks(t *testing.T) {
 		Status:         "down",
 		Method:         "GET",
 		CronExpression: "* * * * *",
+		JobStatus:      true,
 	}
 
 	insertApp(&app)
@@ -43,6 +44,7 @@ func TestRegisterCheck(t *testing.T) {
 		Status:         "down",
 		Method:         "GET",
 		CronExpression: "* * * * *",
+		JobStatus:      true,
 	}
 
 	insertApp(&app)
@@ -63,6 +65,7 @@ func TestCheckApp(t *testing.T) {
 		Status:         "down",
 		Method:         "GET",
 		CronExpression: "* * * * *",
+		JobStatus:      true,
 	}
 
 	insertApp(&app)

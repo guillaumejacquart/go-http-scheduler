@@ -65,12 +65,20 @@ func getAllApps() ([]domain.App, error) {
 	var apps []domain.App
 	err := db.Preload("Headers").Find(&apps).Error
 
+	for _, a := range apps {
+		_, exists := appsJob[a.ID]
+		a.JobStatus = exists
+	}
+
 	return apps, err
 }
 
 func getApp(id uint) (domain.App, error) {
 	app := domain.App{}
 	err := db.Preload("Headers").First(&app, id).Error
+
+	_, exists := appsJob[app.ID]
+	app.JobStatus = exists
 
 	return app, err
 }

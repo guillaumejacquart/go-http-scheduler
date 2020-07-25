@@ -115,6 +115,20 @@ func (s *Server) setupRoutes() {
 		c.JSON(http.StatusOK, app)
 	})
 
+	router.PUT("/apps/:id/job", func(c *gin.Context) {
+		id := getID(c.Param("id"))
+
+		var status domain.AppStatus
+		if err := c.BindJSON(&status); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		changeAppStatus(uint(id), status.Status)
+		c.JSON(http.StatusOK, status)
+	})
+
 	router.DELETE("/apps/:id", func(c *gin.Context) {
 		id := getID(c.Param("id"))
 

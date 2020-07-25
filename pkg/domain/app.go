@@ -24,4 +24,10 @@ type App struct {
 	CronExpression string     `json:"cronExpression"`
 	LastUpDate     *time.Time `json:"lastUpDate"`
 	Headers        []Header   `json:"headers"`
+	JobStatus      bool       `json:"jobStatus"`
+}
+
+// AppStatus is the app status model
+type AppStatus struct {
+	Status bool `json:"status"`
 }

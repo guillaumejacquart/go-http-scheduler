@@ -123,10 +123,10 @@
                 </div>
                 <div class="app-buttons btn-group btn-group-sm">
                   <button
-                    v-if="app.checkStatus === 'start'"
+                    v-if="app.jobStatus"
                     type="button"
-                    class="btn btn-danger"
-                    v-on:click="changeStatus('stop', app)"
+                    class="btn btn-default"
+                    v-on:click="changeStatus(app)"
                   >
                     Stop
                   </button>
@@ -134,7 +134,7 @@
                     v-else
                     type="button"
                     class="btn btn-success"
-                    v-on:click="changeStatus('start', app)"
+                    v-on:click="changeStatus(app)"
                   >
                     Start
                   </button>

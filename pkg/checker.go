@@ -28,7 +28,9 @@ func registerChecks() {
 	}
 
 	for _, a := range apps {
-		registerCheck(a)
+		if a.JobStatus {
+			registerCheck(a)
+		}
 	}
 	c.Run()
 }
@@ -46,6 +48,25 @@ func registerCheck(a domain.App) {
 	})
 
 	appsJob[a.ID] = eID
+}
+
+func changeAppStatus(aID uint, status bool) {
+	jobID, exists := appsJob[aID]
+	app, _ := getApp(aID)
+
+	if exists && !status {
+		log.Println("Job for app exists, removing it")
+		c.Remove(jobID)
+		delete(appsJob, aID)
+	}
+
+	if !exists && status {
+		log.Println("Job for app does not exists, adding it")
+		registerCheck(app)
+	}
+
+	app.JobStatus = status
+	updateApp(aID, app)
 }
 
 func checkApp(a domain.App) error {
